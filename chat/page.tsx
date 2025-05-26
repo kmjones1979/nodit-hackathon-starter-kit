@@ -36,7 +36,7 @@ export default function Chat() {
     type OriginalHandleSubmitType = typeof originalHandleSubmit;
 
     const handleSubmit: OriginalHandleSubmitType = (e, options) => {
-        if (e) {
+        if (e && e.preventDefault) {
             e.preventDefault();
         }
         if (!session) {
