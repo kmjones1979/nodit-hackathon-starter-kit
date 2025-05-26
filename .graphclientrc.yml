@@ -1,0 +1,9 @@
+# sources:
+#     - name: TBD
+#       handler:
+#           graphql:
+#               endpoint:
+#                   Authorization: "Bearer ${NEXT_PUBLIC_GRAPH_API_KEY}"
+
+# documents:
+#     - ./apps/web/graphql/**/*.graphql
