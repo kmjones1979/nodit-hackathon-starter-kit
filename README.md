@@ -29,11 +29,10 @@ A comprehensive Web3 AI assistant powered by Nodit's blockchain data API, built 
 ├── apps/web/                          # Main Next.js application
 │   ├── app/
 │   │   ├── api/chat/route.ts          # AI chat API endpoint
+│   │   ├── chat/                      # Chat page and utilities
 │   │   ├── components/                # React components
 │   │   ├── config/                    # Chain and wallet configurations
 │   │   └── utils/chat/                # AI agent tools and providers
-├── chat/                              # Root chat page component
-└── packages/                          # Shared packages
 ```
 
 ## 🔧 Installation & Setup
@@ -193,7 +192,7 @@ export async function POST(req: Request) {
 #### Client-Side Chat Hook
 
 ```typescript
-// chat/page.tsx
+// apps/web/app/chat/page.tsx
 const { messages, input, handleInputChange, handleSubmit, status, stop } =
     useChat({
         maxSteps: 10,
