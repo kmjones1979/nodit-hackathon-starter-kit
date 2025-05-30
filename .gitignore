@@ -79,11 +79,6 @@ tsconfig.tsbuildinfo
 ehthumbs.db
 Thumbs.db
 
-# The Graph
-packages/subgraph/generated/
-packages/subgraph/build/
-packages/subgraph/dist/
-
 # Build outputs
 dist/
 *.log
