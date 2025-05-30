@@ -1,7 +1,0 @@
-query GetTopCoinCreators {
-    coinCreateds(first: 100, orderBy: blockTimestamp, orderDirection: desc) {
-        caller {
-            id
-        }
-    }
-}
