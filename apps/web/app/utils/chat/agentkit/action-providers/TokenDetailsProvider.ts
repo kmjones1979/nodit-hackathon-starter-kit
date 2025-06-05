@@ -45,6 +45,8 @@ const GetTokenDetailsSchema = z.object({
         ),
 });
 
+type GetTokenDetailsInput = z.infer<typeof GetTokenDetailsSchema>;
+
 class TokenDetailsProvider extends ActionProvider<EvmWalletProvider> {
     constructor() {
         super("token-details-provider", []);
@@ -64,7 +66,7 @@ class TokenDetailsProvider extends ActionProvider<EvmWalletProvider> {
     })
     async getTokenDetails(
         walletProvider: EvmWalletProvider,
-        args: z.infer<typeof GetTokenDetailsSchema>
+        args: GetTokenDetailsInput
     ): Promise<{
         name?: string;
         symbol?: string;

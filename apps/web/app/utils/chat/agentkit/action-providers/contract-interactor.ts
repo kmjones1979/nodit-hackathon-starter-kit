@@ -46,20 +46,24 @@ const deployedContracts: Record<
     // },
 };
 
+const ContractInteractionSchema = z.object({
+    contractName: z.string(),
+    functionName: z.string().describe("The name of the function to call"),
+    functionArgs: z
+        .array(z.string())
+        .describe("The arguments to pass to the function"),
+    value: z
+        .string()
+        .optional()
+        .describe("The value to send with the transaction, in wei"),
+});
+
+type ContractInteractionInput = z.infer<typeof ContractInteractionSchema>;
+
 class ContractInteractor extends ActionProvider<WalletProvider> {
     private chainId: number;
 
-    private static readonly SCHEMA = z.object({
-        contractName: z.string(),
-        functionName: z.string().describe("The name of the function to call"),
-        functionArgs: z
-            .array(z.string())
-            .describe("The arguments to pass to the function"),
-        value: z
-            .string()
-            .optional()
-            .describe("The value to send with the transaction, in wei"),
-    });
+    private static readonly SCHEMA = ContractInteractionSchema;
 
     private static readonly BASE_RESULT = z.object({
         contractName: z.string(),
@@ -93,26 +97,21 @@ class ContractInteractor extends ActionProvider<WalletProvider> {
         }
     }
 
-    private createBaseResponse(
-        args: z.infer<typeof ContractInteractor.SCHEMA>
-    ) {
+    private createBaseResponse(args: ContractInteractionInput) {
         return {
             contractName: args.contractName,
             functionName: args.functionName,
         };
     }
 
-    private createErrorResponse(
-        args: z.infer<typeof ContractInteractor.SCHEMA>,
-        error: string
-    ) {
+    private createErrorResponse(args: ContractInteractionInput, error: string) {
         return {
             ...this.createBaseResponse(args),
             error,
         };
     }
 
-    private validateContract(args: z.infer<typeof ContractInteractor.SCHEMA>) {
+    private validateContract(args: ContractInteractionInput) {
         // TODO: This logic will use the placeholder 'deployedContracts' object.
         // When you configure your actual contracts, this will validate against them.
         const chainContracts = deployedContracts[this.chainId];
@@ -142,7 +141,7 @@ class ContractInteractor extends ActionProvider<WalletProvider> {
     })
     async readContract(
         walletProvider: EvmWalletProvider,
-        args: z.infer<typeof ContractInteractor.SCHEMA>
+        args: ContractInteractionInput
     ): Promise<string> {
         try {
             const contract = this.validateContract(args);
@@ -168,7 +167,7 @@ class ContractInteractor extends ActionProvider<WalletProvider> {
     })
     async writeContract(
         walletProvider: EvmWalletProvider,
-        args: z.infer<typeof ContractInteractor.SCHEMA>
+        args: ContractInteractionInput
     ) {
         try {
             const contract = this.validateContract(args);
