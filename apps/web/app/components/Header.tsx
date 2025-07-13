@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChainSelector } from "./ChainSelector";
+import { PersonalitySelector } from "./PersonalitySelector";
 import { WalletConnect } from "./WalletConnect";
 import { SiweAuth } from "./SiweAuth";
 import { DebugToggle } from "./DebugToggle";
@@ -32,6 +33,7 @@ export function Header() {
                 {/* Desktop Action Items - hidden on medium and smaller screens */}
                 <div className="hidden md:flex items-center gap-2">
                     <ChainSelector />
+                    <PersonalitySelector />
                     <WalletConnect />
                     <SiweAuth />
                     <DebugToggle />
@@ -75,6 +77,12 @@ export function Header() {
                                         Chain
                                     </span>
                                     <ChainSelector />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-muted-foreground">
+                                        AI Personality
+                                    </span>
+                                    <PersonalitySelector />
                                 </div>
                                 <div className="flex flex-col space-y-2">
                                     <WalletConnect />

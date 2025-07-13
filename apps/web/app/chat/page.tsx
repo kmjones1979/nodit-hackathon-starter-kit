@@ -10,12 +10,18 @@ import { Header } from "../components/Header";
 import { useAccount, useChainId } from "wagmi";
 import { useSession } from "next-auth/react";
 import { CHAINS } from "../config/chains";
+import { usePersonality } from "../contexts/PersonalityContext";
 
 export default function Chat() {
     const { address, isConnected } = useAccount();
     const { data: session, status: sessionStatus } = useSession();
     const chainId = useChainId();
     const currentChain = CHAINS[chainId as keyof typeof CHAINS];
+    const { personalityId, personality } = usePersonality();
+
+    // Debug logging
+    console.log(`[chat/page] Current personality ID: ${personalityId}`);
+    console.log(`[chat/page] Current personality name: ${personality.name}`);
 
     const {
         messages,
@@ -28,7 +34,10 @@ export default function Chat() {
         maxSteps: 10,
         body: {
             chainId,
+            personalityId,
         },
+        // Force re-initialization when personality changes
+        id: `chat-${personalityId}`,
     });
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const lastMessageCount = useRef(messages.length);
@@ -130,6 +139,25 @@ export default function Chat() {
                                         with smart contracts across multiple
                                         networks.
                                     </p>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="text-xs text-muted-foreground">
+                                            Personality:
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <div
+                                                className="w-4 h-4 rounded-full flex items-center justify-center text-white text-xs"
+                                                style={{
+                                                    backgroundColor:
+                                                        personality.color,
+                                                }}
+                                            >
+                                                {personality.emoji}
+                                            </div>
+                                            <span className="text-xs font-medium">
+                                                {personality.name}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                                 {currentChain && (
                                     <div className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-lg">

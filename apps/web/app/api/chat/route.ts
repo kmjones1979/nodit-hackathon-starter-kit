@@ -5,6 +5,10 @@ import { baseSepolia, foundry, type Chain } from "viem/chains";
 import { getTools, createAgentKit } from "../../utils/chat/tools";
 import { siweAuthOptions } from "../../utils/scaffold-eth/auth";
 import { CHAINS } from "../../config/chains";
+import {
+    getPersonality,
+    DEFAULT_PERSONALITY_ID,
+} from "../../config/personalities";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -19,7 +23,7 @@ export async function POST(req: Request) {
         return new Response("Unauthorized", { status: 401 });
     }
 
-    const { messages, chainId } = await req.json();
+    const { messages, chainId, personalityId } = await req.json();
 
     // Use the provided chainId or fallback to baseSepolia
     const selectedChainId = chainId || baseSepolia.id;
@@ -33,38 +37,18 @@ export async function POST(req: Request) {
 
     const { agentKit } = await createAgentKit(selectedChainId);
 
-    const prompt = `
-  You are a helpful Web3 assistant operating on EVM-compatible blockchains.
-  You can interact with smart contracts and access comprehensive Web3 data through Nodit.
-  
-  Your available tools include:
+    // Get the personality and use its system prompt
+    const selectedPersonalityId = personalityId || DEFAULT_PERSONALITY_ID;
+    const selectedPersonality = getPersonality(selectedPersonalityId);
 
-  - 'getTokenDetails': To fetch the name, symbol, and total supply for a given ERC20-like token contract address on a specified chain.
-  - 'read-contract': To call read-only functions on smart contracts. (Note: Full contract interaction setup might be pending, if so, inform the user if a specific contract isn't found/configured).
-  - 'write-contract': To send transactions to smart contracts for write operations. (Note: Full contract interaction setup might be pending).
+    // Debug logging
+    console.log(`[api/chat] Selected personality ID: ${selectedPersonalityId}`);
+    console.log(
+        `[api/chat] Selected personality name: ${selectedPersonality.name}`
+    );
 
-  - Tools provided by 'tokenApiProvider' (you can infer its capabilities if a user asks for token-related data beyond basic details, like market prices or balances if supported).
-  - Standard wallet actions like checking balance or signing messages via 'walletActionProvider'.
+    const prompt = `${selectedPersonality.systemPrompt}
   
-  **Nodit Web3 Data API Tools:**
-  - 'getTokenTransfersByAccount': Get comprehensive token transfer history for any account across supported networks
-  - 'getTokenBalancesByAccount': Get current token balances for any account
-  - 'getBlockByNumber': Get detailed block information including transactions
-  - 'getTransactionByHash': Get complete transaction details and status
-  
-  For Nodit tools, you can query data from multiple networks including:
-  - Ethereum (mainnet, testnet)
-  - Polygon (mainnet, testnet)
-  - Arbitrum (mainnet, testnet)
-  - Avalanche (mainnet, testnet)
-  - Optimism (mainnet, testnet)
-  - Base (mainnet, testnet)
-  - And other supported EVM networks
-  
-  When using Nodit tools, specify the network (e.g., 'ethereum') and chainType (e.g., 'mainnet' or 'testnet').
-
-  When creating coins or sending transactions, clearly state the action to be taken and ask for confirmation if appropriate or if parameters are ambiguous.
-  If the user asks about contract interactions and a specific contract is not found/configured (due to the placeholder setup for 'deployedContracts'), politely inform them that the full contract details are not yet available for that specific contract/chain in your current setup but you can attempt standard ERC20 calls if they provide an address and ABI details, or use other tools.
   You are currently configured to work with ${selectedChain.name} (chainId: ${selectedChainId}). Tools like 'getTokenDetails' will operate on this chain unless otherwise specified by the user.
   The current user's address is ${userAddress}.
   `;
