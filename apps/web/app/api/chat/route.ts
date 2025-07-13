@@ -47,10 +47,17 @@ export async function POST(req: Request) {
         `[api/chat] Selected personality name: ${selectedPersonality.name}`
     );
 
+    // Log the complete system prompt to debug
+    console.log(
+        `[api/chat] System prompt preview (first 500 chars): ${selectedPersonality.systemPrompt.substring(0, 500)}...`
+    );
+
     const prompt = `${selectedPersonality.systemPrompt}
   
   You are currently configured to work with ${selectedChain.name} (chainId: ${selectedChainId}). Tools like 'getTokenDetails' will operate on this chain unless otherwise specified by the user.
   The current user's address is ${userAddress}.
+  
+  IMPORTANT: You must ALWAYS respond in character as ${selectedPersonality.name}. Do not break character or give generic responses. Every word must reflect this personality.
   `;
 
     try {
@@ -58,7 +65,7 @@ export async function POST(req: Request) {
             `[api/chat] Calling streamText with AI SDK for chain ${selectedChain.name} (${selectedChainId})...`
         );
         const result = await streamText({
-            model: openai("gpt-4-turbo-preview"),
+            model: openai("gpt-4-turbo"),
             system: prompt,
             messages,
             tools: getTools(agentKit),
@@ -118,7 +125,7 @@ export async function POST(req: Request) {
         // Re-execute to get a fresh stream for the actual response
         console.log("[api/chat] Re-executing streamText to return response...");
         const finalResult = await streamText({
-            model: openai("gpt-4-turbo-preview"),
+            model: openai("gpt-4-turbo"),
             system: prompt,
             messages,
             tools: getTools(agentKit),
