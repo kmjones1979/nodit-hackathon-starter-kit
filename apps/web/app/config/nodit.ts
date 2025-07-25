@@ -16,12 +16,13 @@ export function validateNoditConfig() {
 
 export const supportedNetworks = [
     "ethereum",
-    "polygon",
+    "polygon", 
     "base",
     "arbitrum",
-    "optimism",
     "avalanche",
+    "optimism",
     "bsc",
+    "aptos", // Based on documentation
 ] as const;
 
 export const supportedChainTypes = ["mainnet", "testnet"] as const;

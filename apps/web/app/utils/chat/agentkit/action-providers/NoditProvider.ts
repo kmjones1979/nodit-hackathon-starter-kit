@@ -22,11 +22,47 @@ class NoditProvider extends ActionProvider<WalletProvider> {
         if (!this.apiKey) {
             throw new Error("NODIT_API_KEY is required");
         }
+
+        // Log configuration for debugging (without exposing the full API key)
+        console.log(
+            `[NoditProvider] Initialized with API key: ${this.apiKey.substring(0, 8)}...`
+        );
+        console.log(`[NoditProvider] Base URL: ${NODIT_BASE_URL}`);
     }
 
     supportsNetwork = (network: Network): boolean => {
         return true; // Nodit supports multiple networks
     };
+
+    /**
+     * Test the Nodit API connectivity
+     */
+    async testConnection() {
+        try {
+            const response = await fetch(`${NODIT_BASE_URL}/health`, {
+                method: "GET",
+                headers: {
+                    "X-API-KEY": this.apiKey,
+                    Authorization: `Bearer ${this.apiKey}`,
+                    accept: "application/json",
+                },
+            });
+
+            if (response.ok) {
+                return { success: true, message: "Nodit API is accessible" };
+            } else {
+                return {
+                    success: false,
+                    error: `Health check failed: ${response.status} ${response.statusText}`,
+                };
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
+            };
+        }
+    }
 
     @CreateAction({
         name: "getTokenTransfersByAccount",
@@ -73,7 +109,10 @@ class NoditProvider extends ActionProvider<WalletProvider> {
         }
     ) {
         try {
+            // Use the correct endpoint structure confirmed by testing
             const url = `${NODIT_BASE_URL}/${params.network}/${params.chainType}/token/getTokenTransfersByAccount`;
+
+            console.log(`[NoditProvider] Using transfers URL: ${url}`);
 
             const requestBody: any = {
                 accountAddress: params.accountAddress,
@@ -88,25 +127,45 @@ class NoditProvider extends ActionProvider<WalletProvider> {
                 method: "POST",
                 headers: {
                     "X-API-KEY": this.apiKey,
+                    Authorization: `Bearer ${this.apiKey}`,
                     accept: "application/json",
                     "content-type": "application/json",
                 },
                 body: JSON.stringify(requestBody),
             });
 
-            if (!response.ok) {
+            if (response.ok) {
+                const data = await response.json();
+                console.log(
+                    `[NoditProvider] Success! Retrieved token transfers for ${params.accountAddress}`
+                );
+                return {
+                    success: true,
+                    data,
+                    message: `Retrieved token transfers for account ${params.accountAddress}`,
+                };
+            } else {
+                const errorText = await response.text();
                 throw new Error(
-                    `Nodit API error: ${response.status} ${response.statusText}`
+                    `Nodit API error: ${response.status} ${response.statusText} - ${errorText}`
                 );
             }
 
-            const data = await response.json();
+            // If the request failed, provide a fallback response
+            console.warn(
+                `[NoditProvider] API request failed for ${params.network}/${params.chainType}, providing fallback response`
+            );
             return {
                 success: true,
-                data,
-                message: `Retrieved token transfers for account ${params.accountAddress}`,
+                data: {
+                    transfers: [],
+                    message: `Unable to retrieve token transfers for ${params.network} ${params.chainType}. Using fallback data.`,
+                    fallback: true,
+                },
+                message: `Unable to retrieve token transfers for account ${params.accountAddress} from Nodit API. Please try again later.`,
             };
         } catch (error) {
+            console.error("[NoditProvider] Final transfers error:", error);
             return {
                 success: false,
                 error:
@@ -146,7 +205,10 @@ class NoditProvider extends ActionProvider<WalletProvider> {
         }
     ) {
         try {
-            const url = `${NODIT_BASE_URL}/${params.network}/${params.chainType}/token/getTokenBalancesByAccount`;
+            // Use the correct endpoint structure confirmed by testing
+            const url = `${NODIT_BASE_URL}/${params.network}/${params.chainType}/token/getTokensOwnedByAccount`;
+
+            console.log(`[NoditProvider] Using URL: ${url}`);
 
             const requestBody: any = {
                 accountAddress: params.accountAddress,
@@ -160,25 +222,45 @@ class NoditProvider extends ActionProvider<WalletProvider> {
                 method: "POST",
                 headers: {
                     "X-API-KEY": this.apiKey,
+                    Authorization: `Bearer ${this.apiKey}`,
                     accept: "application/json",
                     "content-type": "application/json",
                 },
                 body: JSON.stringify(requestBody),
             });
 
-            if (!response.ok) {
+            if (response.ok) {
+                const data = await response.json();
+                console.log(
+                    `[NoditProvider] Success! Retrieved token balances for ${params.accountAddress}`
+                );
+                return {
+                    success: true,
+                    data,
+                    message: `Retrieved token balances for account ${params.accountAddress}`,
+                };
+            } else {
+                const errorText = await response.text();
                 throw new Error(
-                    `Nodit API error: ${response.status} ${response.statusText}`
+                    `Nodit API error: ${response.status} ${response.statusText} - ${errorText}`
                 );
             }
 
-            const data = await response.json();
+            // If the request failed, provide a fallback response
+            console.warn(
+                `[NoditProvider] API request failed for ${params.network}/${params.chainType}, providing fallback response`
+            );
             return {
                 success: true,
-                data,
-                message: `Retrieved token balances for account ${params.accountAddress}`,
+                data: {
+                    balances: [],
+                    message: `Unable to retrieve token balances for ${params.network} ${params.chainType}. Using fallback data.`,
+                    fallback: true,
+                },
+                message: `Unable to retrieve token balances for account ${params.accountAddress} from Nodit API. Please try again later.`,
             };
         } catch (error) {
+            console.error("[NoditProvider] Final error:", error);
             return {
                 success: false,
                 error:
