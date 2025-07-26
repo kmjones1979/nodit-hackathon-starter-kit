@@ -245,6 +245,10 @@ export default function Chat() {
                                                             })
                                                         )}
                                                         messageId={message.id}
+                                                        chainName={
+                                                            currentChain?.name
+                                                        }
+                                                        accountAddress={address}
                                                     />
                                                 )}
                                             <ReactMarkdown>
